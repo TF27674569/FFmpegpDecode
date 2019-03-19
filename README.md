@@ -14,3 +14,29 @@
 &nbsp;　　&nbsp;　　6.1 压缩视频包转YUV420P的包 <br/>
 &nbsp;　　&nbsp;　　6.2 写入文件 <br/>
 &nbsp;　　7 关闭释放资源 <br/>
+
+
+### 注意
+&nbsp;　　1.CmakeLists.txt so库需要一个一个链接 <br/>
+```python
+
+# 编解码库
+add_library( avcodec-56
+        SHARED
+        IMPORTED )
+set_target_properties( avcodec-56
+        PROPERTIES IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libavcodec-56.so)
+
+```
+&nbsp;　　2.注意权限与版本号 <br/>
+```c
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+    targetSdkVersion 21
+
+
+    abiFilters "armeabi-v7a" //高版本NDK请注意cpu架构 有些不支持 armeabi
+
+```
