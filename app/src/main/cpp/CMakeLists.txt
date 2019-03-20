@@ -1,22 +1,14 @@
-# For more information about using CMake with Android Studio, read the
-# documentation: https://d.android.com/studio/projects/add-native-code.html
 
-# Sets the minimum version of CMake required to build the native library.
 
 cmake_minimum_required(VERSION 3.4.1)
 
-# Creates and names a library, sets it as either STATIC
-# or SHARED, and provides the relative paths to its source code.
-# You can define multiple libraries, and CMake builds them for you.
-# Gradle automatically packages shared libraries with your APK.
 
-add_library( # Sets the name of the library.
+
+add_library(
              ffmpegp_decode
 
-             # Sets the library as a shared library.
              SHARED
 
-             # Provides a relative path to your source file(s).
              ffmpegp_decode.cpp )
 
 #引入头文件
@@ -28,12 +20,9 @@ link_directories(${CMAKE_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/)
 
 
 
-
-find_library( # Sets the name of the path variable.
+find_library(
               log-lib
 
-              # Specifies the name of the NDK library that
-              # you want CMake to locate.
               log )
 
 # 编解码库
@@ -95,7 +84,7 @@ set_target_properties( swresample-1
         ${CMAKE_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libswresample-1.so)
 
 
-
+#像素格式转换 缩放
 add_library( swscale-3
         SHARED
         IMPORTED )
