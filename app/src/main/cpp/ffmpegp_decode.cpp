@@ -114,7 +114,7 @@ Java_com_sample_decode_ffmpegp_VideoUtils_decodeYUV420P(JNIEnv *env, jclass type
     AVFrame *yuvFrame = av_frame_alloc();
     // 需要指定格式 画面大小才能 真正分配内存
     uint8_t *out_buff = (uint8_t*)av_malloc(avpicture_get_size(AV_PIX_FMT_YUV420P,pCodecCtx->width, pCodecCtx->height));
-    // 初始化缓冲区
+    // 设置yuvFrame缓冲区和格式
     avpicture_fill((AVPicture *)(yuvFrame), out_buff, AV_PIX_FMT_YUV420P, pCodecCtx->width, pCodecCtx->height);
 
     // 用于判断是否结束
@@ -130,31 +130,36 @@ Java_com_sample_decode_ffmpegp_VideoUtils_decodeYUV420P(JNIEnv *env, jclass type
     FILE *outFile = fopen(outPath,"wb");
 
     while (av_read_frame(pFormatCtx,avPacket)>=0){
-        // AVPacket - > AVFrame
-        // AVCodecContext 编码器上下文
-        // AVFrame 编码后一帧的数据
-        // int *got_picture_ptr 为0 表示没有数据了
-        // AVPacket  读取到的数据包
-        avcodec_decode_video2(pCodecCtx,srcFrame,&got_picture_ptr,avPacket);
 
-        // 不为0 正在解码
-        if (got_picture_ptr){
-            // 将AVFrame -> YUV420P 像素格式转换
-            // SwsContext 像素转换 缩放上下文
-            // const uint8_t *const srcSlice 指向平面的指针的数组
-            // int srcStride
-            sws_scale(swsCtx,
-                      srcFrame->data,srcFrame->linesize,0,srcFrame->height,/*目标资源*/
-                      yuvFrame->data,yuvFrame->linesize/*yuv资源*/);
+        // 只解码视频packet
+        if(avPacket->stream_index == videoStreamId){
+            // AVPacket - > AVFrame
+            // AVCodecContext 编码器上下文
+            // AVFrame 编码后一帧的数据
+            // int *got_picture_ptr 为0 表示没有数据了
+            // AVPacket  读取到的数据包
+            avcodec_decode_video2(pCodecCtx,srcFrame,&got_picture_ptr,avPacket);
 
-            // 一帧的大小
-            size_t size = pCodecCtx->width*pCodecCtx->height;
-            // 保存yuv Y：U：V =  4 ：1 ：1
-            fwrite(yuvFrame->data[0],1,size,outFile);
-            fwrite(yuvFrame->data[1],1,size/4,outFile);
-            fwrite(yuvFrame->data[2],1,size/4,outFile);
+            // 不为0 正在解码
+            if (got_picture_ptr){
+                // 将AVFrame -> YUV420P 像素格式转换
+                // SwsContext 像素转换 缩放上下文
+                // const uint8_t *const srcSlice 指向平面的指针的数组
+                // int srcStride
+                sws_scale(swsCtx,
+                          srcFrame->data,srcFrame->linesize,0,srcFrame->height,/*目标资源*/
+                          yuvFrame->data,yuvFrame->linesize/*yuv资源*/);
 
-            LOGI("解码第%d帧",frameCount++);
+                // 一帧的大小
+                size_t size = pCodecCtx->width*pCodecCtx->height;
+                // 保存yuv Y：U：V =  4 ：1 ：1
+                fwrite(yuvFrame->data[0],1,size,outFile);
+                fwrite(yuvFrame->data[1],1,size/4,outFile);
+                fwrite(yuvFrame->data[2],1,size/4,outFile);
+
+                LOGI("解码第%d帧",frameCount++);
+            }
+
         }
 
         av_free_packet(avPacket);
